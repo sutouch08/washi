@@ -1,0 +1,120 @@
+<?php /***********************************   ระบบตรวจสอบสิทธิ์  ******************************************/ ?>
+<?php $access = valid_access($id_menu);  ?>
+<?php if($access['view'] != 1) : ?>
+<?php access_deny();  ?>
+<?php else : ?>
+<div class="container">
+<div class='row'>
+	<div class='col-lg-6'>
+    	<h3 style='margin-bottom:0px; margin-top:0px;'><i class='fa fa-dashboard'></i>&nbsp; รายงาน แพ็คเกจใช้ไป</h3>
+    </div>
+     <div class='col-lg-6'>
+    	<p class="pull-right" style="margin-bottom:0px; margin-top:0px;"><button type="button" class="btn btn-success" onclick="print_report();"><i class="fa fa-print"></i>&nbsp; พิมพ์</button></p>
+    </div>
+    
+</div><!-- End Row -->
+<hr style='border-color:#CCC; margin-top: 10px; margin-bottom:15px;' />
+<div class="row">
+<div class="col-lg-3"><div class="input-group"><span class="input-group-addon">สาขา</span><select name="id_shop" id="id_shop" class="form-control"><?php echo selectShop($id_shop); ?></select></div></div>
+<div class="col-lg-2">&nbsp;</div>
+<div class="col-lg-3"><div class="input-group"><span class="input-group-addon">จากวันที่</span><input type="text" id="from" name="from" class="form-control" value="<?php echo thaiShortDate($from); ?>" /></div></div>
+<div class="col-lg-3"><div class="input-group"><span class="input-group-addon">ถึงวันที่</span><input type="text" id="to" name="to" class="form-control" value="<?php echo thaiShortDate($to); ?>" /></div></div>
+<div class="col-lg-1"><button class="btn btn-default" onclick="get_report()">ตกลง</button></div>
+</div>
+<hr style='border-color:#CCC; margin-top: 10px; margin-bottom:15px;' />
+<div class="row">
+<div class="col-lg-2"><button class="btn btn-info btn-block" onclick="package_used(0);">วันนี้</button></div>
+<div class="col-lg-2"><button class="btn btn-primary btn-block" onclick="package_used(7);">7 วันล่าสุด</button></div>
+<div class="col-lg-2"><button class="btn btn-success btn-block" onclick="package_used(15);" >15 วันล่าสุด</button></div>
+<div class="col-lg-2"><button class="btn btn-warning btn-block" onclick="package_used(30);" >30 วันล่าสุด</button></div>
+<div class="col-lg-2"><button class="btn btn-danger btn-block" onclick="package_used('x');" >เดือนนี้</button></div>
+
+</div>
+<hr style='border-color:#CCC; margin-top: 10px; margin-bottom:15px;' />
+<div class="row"><div class="col-lg-12"><h4 style="text-align:center" id="title">รายงานการรับเงิน วันที่ &nbsp; <?php echo thaiShortDate($from); ?>&nbsp; ถึงวันที่ &nbsp;<?php echo thaiShortDate($to); ?> สาขา <?php echo getShopName($id_shop); ?></h4></div></div>
+<hr style='border-color:#CCC; margin-top: 10px; margin-bottom:15px;' />
+<div class='row'>
+<div class="col-lg-12" id="report">
+<table class="table table-striped">
+<thead>
+<th style="width:10%; text-align:center">วันที่</th>
+<th style="width:15%">ลูกค้า</th>
+<th style="width:10%">สาขา</th>
+<th style="width:10%;">ออเดอร์</th>
+<th style="width:20%;">แพ็คเกจ</th>
+<th style="width:10%; text-align:right">จำนวน</th>
+<th style="width:10%; text-align:right">มูลค่า</th>
+<th style="width:15%; text-align:right">พนักงาน</th>
+</thead>
+<?php if($data != false) : ?>
+<?php foreach($data as $rs) :?>
+<tr>
+<td align="center"><?php echo thaiShortDate($rs->date_upd); ?></td>
+<td><?php echo getCustomerName($rs->id_customer); ?></td>
+<td><?php echo getShopName($rs->id_shop); ?></td>
+<td><?php echo getOrderNumber($rs->id_order);  ?></td>
+<td><?php echo $rs->promotion_name; ?></td>
+<td align="right"><?php echo number($rs->qty); ?></td>
+<td align="right"><?php echo number($rs->amount,2); ?></td>
+<td align="right"><?php echo getEmployeeFirstName($rs->id_employee); ?></td>
+</tr>
+<?php endforeach; ?>
+<?php else: ?>
+<tr><td colspan="9" align="center"><h4>------------- ไม่มีรายการ --------------</h4></td></tr>
+<?php endif; ?>
+</table>
+</div>
+<form id="payment_form" action="<?php echo base_url()."management/payment/print_report/"; ?>" method="post">
+ <input type="hidden" name="data" id="data" value="" />
+  <input type="hidden" name="heading" id="heading" value="" />
+ </form>
+</div><!-- End Row -->
+<script>
+$("#from").datepicker({
+	'dateFormat' : 'dd-mm-yy', onClose: function(selectedDate){
+		$("#to").datepicker("option", 'minDate', selectedDate)
+	}
+});
+
+$("#to").datepicker({
+	"dateFormat" : "dd-mm-yy", onClose: function(selectedDate){
+		$("#from").datepicker("option", "maxDate", selectedDate)
+	}
+});
+
+function get_report(){
+	var from = $("#from").val();
+	var to = $("#to").val()
+	var shop = $("#id_shop").val();
+	if(from ==""){
+		alert("คุณยังไม่ได้เลือวัน");
+	}else if(to == ""){
+		alert("คุณยังไม่ได้เลือกวัน");
+	}else{
+		window.location.href="<?php echo $this->home."/package_used/rank/"; ?>"+shop+"/"+from+"/"+to;
+	}
+}
+
+function package_used(i){
+	var shop = $("#id_shop").val();
+	if(i =="x"){
+		window.location.href="<?php echo $this->home."/package_used/this_month/"; ?>"+shop;
+	}else{
+		window.location.href="<?php echo $this->home."/package_used/day/"; ?>"+shop+"/"+i;
+	}
+}
+
+function print_report(){
+	var data = $("#report").html();
+	var title = $("#title").html();
+	$("#data").val(data);
+	$("#heading").val(title);
+	if(data ==""){
+		alert("no data");
+	}else{
+	$("#payment_form").submit();
+	}
+}
+</script>
+<?php endif; ?>
+</div>

@@ -1,0 +1,26 @@
+.starter-template
+{
+	text-align:center;
+}
+.input-label
+{
+background-color:White;
+border:none;
+}
+.input-label-textarea
+{
+background-color:White;
+border:none;
+width:100%;
+}
+input[type=date]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    display: none;
+}
+input[type=date]::-webkit-clear-button
+{
+    display: none; /* Hide the button */
+    -webkit-appearance: none; /* turn off default browser styling */
+}
+
+
